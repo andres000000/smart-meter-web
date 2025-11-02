@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Optimizador de Energía</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilos mejorados para el login */
+    .form-container {
+      background: rgb(255, 255, 255);
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .title-black {
+      color: black !important;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .input-box {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #000000;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-box input:focus {
+      outline: none;
+      border-color: #2196f3;
+      box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .links a {
+      color: #2196f3;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .links a:hover {
+      color: #1976d2;
+      text-decoration: underline;
+    }
+
+    #message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+      display: none;
+    }
+
+    #message.visible {
+      display: block;
+    }
+
+    #message.error {
+      background-color: #fee;
+      color: #c00;
+      border: 1px solid #fcc;
+    }
+
+    #message.success {
+      background-color: #efe;
+      color: #060;
+      border: 1px solid #cfc;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #2196f3;
+      margin-top: 10px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #2196f3;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2 class="title-black">⚡ Login</h2>
+    <p class="subtitle">Optimizador Inteligente de Energía</p>
+
+    <form id="loginForm">
+      <div class="input-box">
+        <input type="email" id="correo" placeholder="Email (ej: usuario@dominio.com)" required>
+      </div>
+      <div class="input-box">
+        <input type="password" id="password" placeholder="Contraseña" required>
+      </div>
+      <button type="submit">Iniciar Sesión</button>
+    </form>
+
+    <div class="links">
+      <a href="forgot.html">¿Olvidaste tu contraseña?</a>
+      <a href="signup.html">Crear cuenta</a>
+    </div>
+
+    <div class="loading" id="loading">
+      <span class="spinner"></span>Verificando credenciales...
+    </div>
+
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const message = document.getElementById('message');
+    const loading = document.getElementById('loading');
+
+    function validarCorreo(correo) {
+      const regex = /^[^@]+@[^@]+\.[a-zA-Z]{2,}$/;
+      return regex.test(correo);
+    }
+
+    function mostrarMensaje(texto, tipo) {
+      message.textContent = texto;
+      message.className = `visible ${tipo}`;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const correo = document.getElementById('correo').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Limpiar mensajes previos
+      message.className = '';
+      message.textContent = '';
+
+      if (!validarCorreo(correo)) {
+        mostrarMensaje("❌ El correo no es válido", "error");
+        return;
+      }
+
+      if (!password) {
+        mostrarMensaje("❌ Por favor ingresa tu contraseña", "error");
+        return;
+      }
+
+      loading.style.display = 'block';
+
+      try {
+        const response = await fetch('http://localhost:4000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // ✅ Guardar token y usuario en localStorage
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+
+          mostrarMensaje("✅ Login exitoso, redirigiendo...", "success");
+
+          // ✅ Redirigir según el rol
+          setTimeout(() => {
+            if (data.user.rol === 'administrador') {
+              window.location.href = "dashboard-admin.html";
+            } else {
+              window.location.href = "dashboard.html";
+            }
+          }, 1500);
+        } else {
+          mostrarMensaje("❌ " + (data.msg || "Error en login"), "error");
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarMensaje("⚠️ Error de conexión con el servidor", "error");
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

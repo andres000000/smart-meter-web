@@ -1,0 +1,297 @@
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --dark-bg: linear-gradient(135deg, #0f172e 0%, #1a1f3a 50%, #0d0f1f 100%);
+}
+
+.dashboard-user {
+  background: var(--dark-bg);
+  min-height: 100vh;
+  color: #e0e0e0;
+  padding: 20px 0;
+}
+
+.navbar-custom {
+  background: var(--primary-gradient);
+  padding: 15px 30px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.user-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+}
+
+.hero-card {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 40px;
+  margin-bottom: 30px;
+  animation: fadeInDown 0.6s ease;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  backdrop-filter: blur(10px);
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px #10b981; }
+  50% { opacity: 0.5; box-shadow: 0 0 5px #10b981; }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  padding: 25px;
+  height: 100%;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+}
+
+.metric-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-bottom: 15px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.metric-icon.primary { background: var(--primary-gradient); color: white; }
+.metric-icon.success { background: var(--success-gradient); color: white; }
+.metric-icon.warning { background: var(--warning-gradient); color: white; }
+.metric-icon.info { background: var(--info-gradient); color: white; }
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00d4ff 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.metric-label {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.gauge-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.gauge-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.gauge-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #00d4ff;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.gauge-unit {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.data-row {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.data-row:hover {
+  transform: translateX(10px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: rgba(102, 126, 234, 0.15);
+}
+
+.alert-item {
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+  border-left: 5px solid;
+  animation: slideInRight 0.5s ease;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #d1fae5;
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+  color: #fef3c7;
+}
+
+.alert-danger {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #fee2e2;
+}
+
+.recommendation-card {
+  background: rgba(102, 126, 234, 0.15);
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 5px solid #667eea;
+  animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+}
+
+.spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(102, 126, 234, 0.3);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.progress-custom {
+  height: 10px;
+  border-radius: 50px;
+  overflow: hidden;
+  background: rgba(102, 126, 234, 0.2);
+}
+
+.progress-bar-animated-custom {
+  background: var(--primary-gradient);
+  animation: progressAnimation 1.5s ease-in-out;
+  transition: width 0.5s ease;
+}
+
+@keyframes progressAnimation {
+  from { width: 0; }
+}
+
+.ia-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-left: 10px;
+}

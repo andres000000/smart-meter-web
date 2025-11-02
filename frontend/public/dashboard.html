@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Usuario - Optimizador de Energía</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: linear-gradient(135deg, #0f172e 0%, #1a1f3a 50%, #0d0f1f 100%);
+        }
+
+        body {
+            background: var(--dark-bg);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 0;
+            color: #e0e0e0;
+        }
+
+        .navbar-custom {
+            background: var(--primary-gradient);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: #e0e0e0;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .hero-card {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #10b981; }
+            50% { opacity: 0.5; box-shadow: 0 0 5px #10b981; }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+            padding: 25px;
+            height: 100%;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .metric-icon.primary { background: var(--primary-gradient); color: white; }
+        .metric-icon.success { background: var(--success-gradient); color: white; }
+        .metric-icon.warning { background: var(--warning-gradient); color: white; }
+        .metric-icon.info { background: var(--info-gradient); color: white; }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .gauge-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .gauge-unit {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .data-row {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .data-row:hover {
+            transform: translateX(10px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            background: rgba(102, 126, 234, 0.15);
+        }
+
+        .alert-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            border-left: 5px solid;
+            animation: slideInRight 0.5s ease;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #d1fae5;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: #f59e0b;
+            color: #fef3c7;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fee2e2;
+        }
+
+        .recommendation-card {
+            background: rgba(102, 126, 234, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .spinner-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-custom {
+            height: 10px;
+            border-radius: 50px;
+            overflow: hidden;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .progress-bar-animated-custom {
+            background: var(--primary-gradient);
+            animation: progressAnimation 1.5s ease-in-out;
+        }
+
+        @keyframes progressAnimation {
+            from { width: 0; }
+        }
+
+        .ia-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-4">
+        <!-- NAVBAR -->
+        <div class="navbar-custom d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 text-white fw-bold">
+                <i class="bi bi-lightning-charge-fill"></i>
+                Optimizador de Energía
+            </h4>
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-badge">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="userName">Usuario</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- HERO SECTION -->
+        <div class="glass-card hero-card">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        Monitor en Tiempo Real
+                    </h1>
+                    <p class="lead mb-4">Sistema Inteligente de Optimización Energética</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="status-badge">
+                            <div class="status-dot" id="statusDot"></div>
+                            <span id="statusText">Conectando...</span>
+                        </div>
+                        <div class="status-badge">
+                            <i class="bi bi-clock"></i>
+                            <span id="lastUpdate">--:--:--</span>
+                        </div>
+                        <div class="status-badge">
+                            <i class="bi bi-calendar3"></i>
+                            <span id="currentDate">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <div class="d-inline-block text-center">
+                        <div class="display-3 fw-bold">⚡</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOADING SCREEN -->
+        <div id="loadingScreen" class="glass-card">
+            <div class="spinner-container">
+                <div class="loading-spinner"></div>
+                <p class="mt-4 text-muted fw-semibold">Cargando datos en tiempo real...</p>
+            </div>
+        </div>
+
+        <!-- DASHBOARD CONTENT -->
+        <div id="dashboardContent" style="display: none;">
+            <!-- MÉTRICAS PRINCIPALES -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card metric-card">
+                        <div class="metric-icon primary">
+                            <i class="bi bi-lightning-fill"></i>
+                        </div>
+                        <div class="metric-value" id="potenciaActual">0</div>
+                        <div class="metric-label">Potencia Actual (W)</div>
+                        <div class="progress-custom mt-3">
+                            <div class="progress-bar progress-bar-animated-custom" id="potenciaProgress" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card metric-card">
+                        <div class="metric-icon success">
+                            <i class="bi bi-battery-charging"></i>
+                        </div>
+                        <div class="metric-value" id="consumoHoy">0</div>
+                        <div class="metric-label">Consumo Hoy (kWh)</div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card metric-card">
+                        <div class="metric-icon warning">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="metric-value" id="costoHoy">$0</div>
+                        <div class="metric-label">Costo Estimado</div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="glass-card metric-card">
+                        <div class="metric-icon info">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <div class="metric-value" id="picoMaximo">0</div>
+                        <div class="metric-label">Pico Máximo (W)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GAUGE Y GRÁFICA -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-speedometer2 text-primary"></i>
+                            Potencia en Tiempo Real
+                        </h5>
+                        <div class="gauge-container">
+                            <canvas id="gaugePotencia"></canvas>
+                            <div class="gauge-value">
+                                <div class="gauge-number" id="gaugeValue">0</div>
+                                <div class="gauge-unit">WATTS</div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-3">
+                            <span class="badge bg-primary" id="estadoPotencia">Normal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-graph-up text-primary"></i>
+                            Historial de Consumo
+                        </h5>
+                        <div class="chart-container">
+                            <canvas id="chartConsumo"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CORRIENTE Y VOLTAJE -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-plug text-primary"></i>
+                            Corriente Eléctrica
+                        </h5>
+                        <div class="data-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">
+                                    <i class="bi bi-circle-fill text-primary" style="font-size: 8px;"></i>
+                                    Corriente L1
+                                </span>
+                                <span class="fs-5 fw-bold" id="corriente1" style="color: #00d4ff;">0.00 A</span>
+                            </div>
+                        </div>
+                        <div class="data-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">
+                                    <i class="bi bi-circle-fill text-success" style="font-size: 8px;"></i>
+                                    Corriente L2
+                                </span>
+                                <span class="fs-5 fw-bold" id="corriente2" style="color: #00d4ff;">0.00 A</span>
+                            </div>
+                        </div>
+                        <div class="data-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">
+                                    <i class="bi bi-circle-fill text-warning" style="font-size: 8px;"></i>
+                                    Corriente L3
+                                </span>
+                                <span class="fs-5 fw-bold" id="corriente3" style="color: #00d4ff;">0.00 A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-lightning text-warning"></i>
+                            Voltaje
+                        </h5>
+                        <div class="data-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">
+                                    <i class="bi bi-circle-fill text-info" style="font-size: 8px;"></i>
+                                    Voltaje L1-N
+                                </span>
+                                <span class="fs-5 fw-bold" id="voltaje1" style="color: #00d4ff;">0.0 V</span>
+                            </div>
+                        </div>
+                        <div class="data-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">
+                                    <i class="bi bi-circle-fill text-danger" style="font-size: 8px;"></i>
+                                    Voltaje L2-N
+                                </span>
+                                <span class="fs-5 fw-bold" id="voltaje2" style="color: #00d4ff;">0.0 V</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANÁLISIS INTELIGENTE Y ALERTAS -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-robot text-primary"></i>
+                            Análisis Inteligente
+                            <span class="ia-badge">IA</span>
+                        </h5>
+                        <div id="recomendacionesList">
+                            <div class="recommendation-card">
+                                <div class="fw-bold mb-2">
+                                    <i class="bi bi-lightbulb"></i>
+                                    Analizando patrones...
+                                </div>
+                                <small class="text-muted">Recopilando datos para generar recomendaciones</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-bell text-warning"></i>
+                            Alertas del Sistema
+                        </h5>
+                        <div id="alertsList">
+                            <div class="alert-item alert-success">
+                                <div class="d-flex align-items-center">
+                                    <div class="fs-3 me-3">✅</div>
+                                    <div>
+                                        <div class="fw-bold">Sistema Operativo</div>
+                                        <small>Esperando datos del sensor...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Verificar autenticación
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('token');
+        
+        if (!user || !token) {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('userName').textContent = user.nombre;
+
+        // Configuración Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbvd1srh6zLAPJACYJMVyL5o2GZ2zGUd0",
+            authDomain: "smart-meter-power.firebaseapp.com",
+            databaseURL: "https://smart-meter-power-default-rtdb.firebaseio.com",
+            projectId: "smart-meter-power",
+            storageBucket: "smart-meter-power.firebasestorage.app",
+            messagingSenderId: "286614378307",
+            appId: "1:286614378307:web:dd4a652ebc742d94f141f6"
+        };
+
+        const TARIFA_KWH = 500;
+        let datosHistoricos = [];
+        let chartConsumo = null;
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const sensoresRef = ref(database, 'sensores');
+        
+        onValue(sensoresRef, (snapshot) => {
+            const datos = snapshot.val();
+            
+            if (datos) {
+                actualizarDashboard(datos);
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('statusText').textContent = 'Conectado';
+            }
+        });
+
+        function actualizarDashboard(datos) {
+            const corriente = [
+                parseFloat(datos.corriente?.dato1) || 0,
+                parseFloat(datos.corriente?.dato2) || 0,
+                parseFloat(datos.corriente?.dato3) || 0
+            ];
+            
+            const voltaje = [
+                parseFloat(datos.voltaje?.dato1) || 0,
+                parseFloat(datos.voltaje?.dato2) || 0
+            ];
+
+            const voltajeProm = (voltaje[0] + voltaje[1]) / 2;
+            const corrienteTotal = corriente[0] + corriente[1] + corriente[2];
+            const potenciaTotal = voltajeProm * corrienteTotal;
+
+            document.getElementById('potenciaActual').textContent = potenciaTotal.toFixed(0);
+            document.getElementById('gaugeValue').textContent = potenciaTotal.toFixed(0);
+            
+            const progreso = Math.min((potenciaTotal / 5000) * 100, 100);
+            document.getElementById('potenciaProgress').style.width = progreso + '%';
+
+            const estadoEl = document.getElementById('estadoPotencia');
+            if (potenciaTotal < 1500) {
+                estadoEl.textContent = 'Bajo';
+                estadoEl.className = 'badge bg-success';
+            } else if (potenciaTotal < 3000) {
+                estadoEl.textContent = 'Normal';
+                estadoEl.className = 'badge bg-primary';
+            } else {
+                estadoEl.textContent = 'Alto';
+                estadoEl.className = 'badge bg-warning';
+            }
+
+            actualizarGauge(potenciaTotal, 5000);
+
+            document.getElementById('corriente1').textContent = corriente[0].toFixed(2) + ' A';
+            document.getElementById('corriente2').textContent = corriente[1].toFixed(2) + ' A';
+            document.getElementById('corriente3').textContent = corriente[2].toFixed(2) + ' A';
+
+            document.getElementById('voltaje1').textContent = voltaje[0].toFixed(1) + ' V';
+            document.getElementById('voltaje2').textContent = voltaje[1].toFixed(1) + ' V';
+
+            datosHistoricos.push({
+                potencia: potenciaTotal,
+                corriente: corriente,
+                voltaje: voltaje,
+                timestamp: Date.now()
+            });
+            
+            if (datosHistoricos.length > 50) {
+                datosHistoricos.shift();
+            }
+
+            actualizarEstadisticas();
+            actualizarGrafica();
+            generarAlertas(potenciaTotal, voltaje);
+            generarRecomendaciones(potenciaTotal, corriente, voltaje);
+
+            const ahora = new Date();
+            document.getElementById('lastUpdate').textContent = ahora.toLocaleTimeString('es-ES');
+        }
+
+        function actualizarGauge(valor, maxValor) {
+            const canvas = document.getElementById('gaugePotencia');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            const centerX = 100;
+            const centerY = 100;
+            const radius = 80;
+
+            ctx.clearRect(0, 0, 200, 200);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.75 * Math.PI, 2.25 * Math.PI);
+            ctx.lineWidth = 20;
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            const porcentaje = Math.min(valor / maxValor, 1);
+            const angulo = 0.75 * Math.PI + (porcentaje * 1.5 * Math.PI);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0.75 * Math.PI, angulo);
+            ctx.lineWidth = 20;
+            ctx.lineCap = 'round';
+            
+            if (porcentaje < 0.3) {
+                ctx.strokeStyle = '#10b981';
+            } else if (porcentaje < 0.6) {
+                ctx.strokeStyle = '#00d4ff';
+            } else if (porcentaje < 0.8) {
+                ctx.strokeStyle = '#f59e0b';
+            } else {
+                ctx.strokeStyle = '#ef4444';
+            }
+            
+            ctx.stroke();
+        }
+
+        function actualizarEstadisticas() {
+            if (datosHistoricos.length === 0) return;
+
+            const consumoWh = datosHistoricos.reduce((sum, d) => sum + d.potencia, 0) / datosHistoricos.length * 24;
+            const consumoKWh = (consumoWh / 1000).toFixed(2);
+            document.getElementById('consumoHoy').textContent = consumoKWh;
+
+            const costo = (consumoKWh * TARIFA_KWH).toFixed(0);
+            document.getElementById('costoHoy').textContent = '$' + costo;
+
+            const datoPico = datosHistoricos.reduce((max, d) => d.potencia > max.potencia ? d : max);
+            document.getElementById('picoMaximo').textContent = datoPico.potencia.toFixed(0);
+        }
+
+        function actualizarGrafica() {
+            if (datosHistoricos.length === 0) return;
+
+            const ctx = document.getElementById('chartConsumo');
+            
+            if (chartConsumo) {
+                chartConsumo.destroy();
+            }
+
+            const labels = datosHistoricos.map((d) => {
+                const fecha = new Date(d.timestamp);
+                return fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            });
+
+            const datos = datosHistoricos.map(d => d.potencia);
+
+            chartConsumo = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Potencia (W)',
+                        data: datos,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            display: true,
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    return value + ' W';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(102, 126, 234, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af'
+                            },
+                            grid: {
+                                color: 'rgba(102, 126, 234, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function generarAlertas(potencia, voltaje) {
+            const alertas = [];
+
+            if (potencia > 4000) {
+                alertas.push({
+                    icon: '🚨',
+                    titulo: 'Consumo Crítico',
+                    texto: `Consumo muy elevado: ${potencia.toFixed(0)}W. Reduce el uso inmediatamente.`,
+                    clase: 'alert-danger'
+                });
+            } else if (potencia > 3000) {
+                alertas.push({
+                    icon: '⚠️',
+                    titulo: 'Consumo Alto',
+                    texto: `Consumo elevado: ${potencia.toFixed(0)}W. Considera apagar dispositivos innecesarios.`,
+                    clase: 'alert-warning'
+                });
+            }
+
+            const voltajeProm = (voltaje[0] + voltaje[1]) / 2;
+            if (voltajeProm < 200 || voltajeProm > 240) {
+                alertas.push({
+                    icon: '⚡',
+                    titulo: 'Voltaje Anormal',
+                    texto: `Voltaje fuera de rango: ${voltajeProm.toFixed(1)}V. Verifica tu instalación eléctrica.`,
+                    clase: 'alert-danger'
+                });
+            }
+
+            if (alertas.length === 0) {
+                alertas.push({
+                    icon: '✅',
+                    titulo: 'Sistema Normal',
+                    texto: 'Todos los parámetros dentro de rangos normales',
+                    clase: 'alert-success'
+                });
+            }
+
+            const alertsList = document.getElementById('alertsList');
+            alertsList.innerHTML = alertas.map(a => `
+                <div class="alert-item ${a.clase}">
+                    <div class="d-flex align-items-center">
+                        <div class="fs-3 me-3">${a.icon}</div>
+                        <div>
+                            <div class="fw-bold">${a.titulo}</div>
+                            <small>${a.texto}</small>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generarRecomendaciones(potencia, corriente, voltaje) {
+            const recomendaciones = [];
+
+            // Análisis inteligente basado en patrones
+            if (datosHistoricos.length >= 10) {
+                const promedio = datosHistoricos.slice(-10).reduce((sum, d) => sum + d.potencia, 0) / 10;
+                const tendencia = (potencia - promedio) / promedio * 100;
+
+                if (tendencia > 20) {
+                    recomendaciones.push({
+                        icon: '📈',
+                        titulo: 'Consumo en Aumento',
+                        texto: `Tu consumo aumentó ${tendencia.toFixed(0)}% en los últimos minutos. Identifica dispositivos de alto consumo.`,
+                        ahorro: 'Potencial ahorro: 15-25%'
+                    });
+                } else if (tendencia < -20) {
+                    recomendaciones.push({
+                        icon: '📉',
+                        titulo: 'Excelente Gestión',
+                        texto: `Has reducido tu consumo en ${Math.abs(tendencia).toFixed(0)}%. ¡Sigue así!`,
+                        ahorro: 'Ahorro actual: Óptimo'
+                    });
+                }
+            }
+
+            // Análisis de desequilibrio de fases
+            const corrienteMax = Math.max(...corriente);
+            const corrienteMin = Math.min(...corriente.filter(c => c > 0));
+            const desequilibrio = ((corrienteMax - corrienteMin) / corrienteMax) * 100;
+
+            if (desequilibrio > 20) {
+                recomendaciones.push({
+                    icon: '⚖️',
+                    titulo: 'Desequilibrio de Cargas',
+                    texto: `Las fases tienen un desequilibrio del ${desequilibrio.toFixed(0)}%. Redistribuye tus cargas eléctricas.`,
+                    ahorro: 'Potencial ahorro: 5-10%'
+                });
+            }
+
+            // Recomendaciones por horario
+            const hora = new Date().getHours();
+            if (hora >= 18 && hora <= 22 && potencia > 2000) {
+                recomendaciones.push({
+                    icon: '🕐',
+                    titulo: 'Horario Pico',
+                    texto: 'Estás en horario pico (6pm-10pm). Pospón tareas de alto consumo como lavadoras o secadoras.',
+                    ahorro: 'Potencial ahorro: 20-30%'
+                });
+            }
+
+            // Factor de potencia
+            const voltajeProm = (voltaje[0] + voltaje[1]) / 2;
+            const corrienteProm = (corriente[0] + corriente[1] + corriente[2]) / 3;
+            const potenciaAparente = voltajeProm * corrienteProm;
+            const factorPotencia = potenciaAparente > 0 ? potencia / potenciaAparente : 1;
+
+            if (factorPotencia < 0.85) {
+                recomendaciones.push({
+                    icon: '⚡',
+                    titulo: 'Factor de Potencia Bajo',
+                    texto: `Factor de potencia: ${factorPotencia.toFixed(2)}. Considera instalar bancos de condensadores.`,
+                    ahorro: 'Potencial ahorro: 10-15%'
+                });
+            }
+
+            // Consumo vampiro
+            if (hora >= 0 && hora <= 6 && potencia > 200) {
+                recomendaciones.push({
+                    icon: '🧛',
+                    titulo: 'Consumo Vampiro Detectado',
+                    texto: `Tienes ${potencia.toFixed(0)}W de consumo en madrugada. Desconecta dispositivos en standby.`,
+                    ahorro: 'Potencial ahorro: $50-100/mes'
+                });
+            }
+
+            // Si todo está bien
+            if (recomendaciones.length === 0) {
+                recomendaciones.push({
+                    icon: '🎯',
+                    titulo: 'Consumo Óptimo',
+                    texto: 'Tu consumo está optimizado. Mantén estos hábitos de eficiencia energética.',
+                    ahorro: 'Estado: Excelente'
+                });
+            }
+
+            const recomendacionesList = document.getElementById('recomendacionesList');
+            recomendacionesList.innerHTML = recomendaciones.map(r => `
+                <div class="recommendation-card">
+                    <div class="fw-bold mb-2">
+                        ${r.icon} ${r.titulo}
+                    </div>
+                    <p class="mb-2" style="font-size: 0.9rem; color: #b0b8d4;">${r.texto}</p>
+                    <small class="text-primary fw-bold">
+                        <i class="bi bi-piggy-bank"></i> ${r.ahorro}
+                    </small>
+                </div>
+            `).join('');
+        }
+
+        // Función para cerrar sesión
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+    <!-- AGREGAR ESTE CÓDIGO AL FINAL DE TU dashboard.html, ANTES DEL </body> -->
+
+<!-- ESTILOS DEL CHATBOT -->
+<style>
+    /* Variables del tema oscuro */
+    :root {
+        --chat-bg: rgba(15, 23, 46, 0.95);
+        --message-user: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --message-bot: rgba(30, 41, 59, 0.9);
+    }
+
+    /* Botón flotante del chatbot */
+    .chat-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        border: none;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .chat-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+    }
+
+    .chat-button.active {
+        transform: rotate(90deg);
+    }
+
+    /* Notificación de mensaje nuevo */
+    .chat-notification {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        width: 24px;
+        height: 24px;
+        background: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        animation: pulse-notification 1.5s infinite;
+    }
+
+    @keyframes pulse-notification {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* Contenedor del chat */
+    .chat-container {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 400px;
+        height: 600px;
+        background: var(--chat-bg);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        display: none;
+        flex-direction: column;
+        z-index: 999;
+        overflow: hidden;
+    }
+
+    .chat-container.active {
+        display: flex;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Header del chat */
+    .chat-header {
+        background: var(--primary-gradient);
+        padding: 20px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .bot-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .bot-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+
+    .status-dot-chat {
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        animation: blink-chat 1.5s infinite;
+    }
+
+    @keyframes blink-chat {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .chat-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .chat-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Cuerpo del chat */
+    .chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .chat-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-body::-webkit-scrollbar-track {
+        background: rgba(102, 126, 234, 0.1);
+    }
+
+    .chat-body::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 10px;
+    }
+
+    /* Mensajes */
+    .message {
+        display: flex;
+        gap: 10px;
+        animation: fadeInMessage 0.3s ease;
+    }
+
+    @keyframes fadeInMessage {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.user {
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .message.bot .message-avatar {
+        background: var(--primary-gradient);
+    }
+
+    .message.user .message-avatar {
+        background: rgba(0, 212, 255, 0.3);
+    }
+
+    .message-content {
+        max-width: 75%;
+        padding: 12px 16px;
+        border-radius: 15px;
+        color: #e0e0e0;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+
+    .message.bot .message-content {
+        background: var(--message-bot);
+        border-bottom-left-radius: 4px;
+    }
+
+    .message.user .message-content {
+        background: var(--message-user);
+        border-bottom-right-radius: 4px;
+        color: white;
+    }
+
+    .message-time {
+        font-size: 11px;
+        opacity: 0.6;
+        margin-top: 4px;
+    }
+
+    /* Sugerencias rápidas */
+    .quick-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .suggestion-btn {
+        background: rgba(102, 126, 234, 0.2);
+        border: 1px solid rgba(102, 126, 234, 0.4);
+        color: #a5b4fc;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .suggestion-btn:hover {
+        background: rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 15px 20px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-10px);
+        }
+    }
+
+    /* Footer del chat */
+    .chat-footer {
+        padding: 15px 20px;
+        background: rgba(30, 41, 59, 0.5);
+        border-top: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .chat-input-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .chat-input {
+        flex: 1;
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        color: #e0e0e0;
+        padding: 12px 16px;
+        border-radius: 25px;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+
+    .chat-input:focus {
+        border-color: #667eea;
+    }
+
+    .chat-input::placeholder {
+        color: #6b7280;
+    }
+
+    .send-btn {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+    }
+
+    .send-btn:hover:not(:disabled) {
+        transform: scale(1.1);
+    }
+
+    .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Badges especiales */
+    .badge-tip {
+        background: linear-gradient(135deg, #10b981 0%, #38ef7d 100%);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    .badge-quiz {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    .badge-analysis {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 8px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .chat-container {
+            width: calc(100vw - 40px);
+            height: calc(100vh - 140px);
+            right: 20px;
+            bottom: 90px;
+        }
+    }
+</style>
+
+<!-- HTML DEL CHATBOT -->
+<button class="chat-button" id="chatButton" onclick="toggleChat()">
+    🤖
+    <span class="chat-notification" id="chatNotification" style="display: none;">1</span>
+</button>
+
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="bot-avatar">🤖</div>
+            <div>
+                <div style="font-weight: bold; font-size: 16px;">Junior</div>
+                <div class="bot-status">
+                    <span class="status-dot-chat"></span>
+                    <span>Asistente Energético IA</span>
+                </div>
+            </div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="chat-body" id="chatBody"></div>
+
+    <div class="chat-footer">
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chatInput" 
+                placeholder="Pregúntame sobre tu consumo..."
+                onkeypress="handleKeyPressChat(event)"
+            >
+            <button class="send-btn" id="sendBtn" onclick="sendChatMessage()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JAVASCRIPT DEL CHATBOT -->
+<script>
+    // Variables globales del chatbot
+    let chatOpen = false;
+    let conversationContext = [];
+    let hasShownWelcome = false;
+    let ultimosDatosEnergia = null;
+
+    // Base de conocimiento
+    const datosCuriosos = [
+        "💡 ¿Sabías que un refrigerador representa entre el 15-30% del consumo eléctrico del hogar?",
+        "⚡ La unidad kWh (kilovatio-hora) es como un 'litro' de electricidad. 1 kWh = 1000W durante 1 hora.",
+        "🌙 Los dispositivos en 'standby' pueden consumir hasta el 10% de tu factura eléctrica anual.",
+        "🔌 El voltaje estándar en Colombia es de 110-120V, pero algunos países usan 220-240V.",
+        "💰 La tarifa energética varía según el horario. El pico es entre 6pm-10pm cuando todos llegan a casa.",
+        "🌍 Colombia genera el 70% de su electricidad de fuentes hidroeléctricas. ¡Bastante limpio!",
+        "⚡ Un rayo tiene aproximadamente 1 billón de vatios de potencia, pero dura microsegundos.",
+        "🏠 Una casa promedio consume entre 200-400 kWh al mes, dependiendo de electrodomésticos.",
+        "🧊 Cada grado menos en el aire acondicionado aumenta el consumo en un 8%.",
+        "💡 Un bombillo LED de 10W puede durar 25,000 horas vs 1,000 de una incandescente."
+    ];
+
+    const preguntasEducativas = [
+        {
+            pregunta: "¿Qué es más eficiente energéticamente?",
+            opciones: ["LED 💡", "Incandescente 🔆", "Fluorescente 💫"],
+            respuesta: 0,
+            explicacion: "¡Correcto! Las LED consumen hasta 80% menos energía y duran 25 veces más que las incandescentes. Una LED de 10W ilumina igual que una incandescente de 60W."
+        },
+        {
+            pregunta: "¿Cuál electrodoméstico consume más en un hogar típico?",
+            opciones: ["TV 📺", "Refrigerador 🧊", "Licuadora 🥤"],
+            respuesta: 1,
+            explicacion: "¡Exacto! El refrigerador funciona 24/7 y representa el mayor consumo constante del hogar (15-30% de la factura). Un refrigerador antiguo puede consumir 150 kWh/mes."
+        },
+        {
+            pregunta: "¿Qué significa 'Factor de Potencia'?",
+            opciones: ["Velocidad ⚡", "Eficiencia 🎯", "Voltaje máximo 📈"],
+            respuesta: 1,
+            explicacion: "¡Bien! El factor de potencia indica qué tan eficientemente se convierte la energía eléctrica en trabajo útil. Un factor de 1.0 es perfecto, 0.8 o menos es ineficiente."
+        },
+        {
+            pregunta: "¿Cuándo es más barata la electricidad?",
+            opciones: ["6pm-10pm 🌆", "12am-6am 🌙", "12pm-3pm ☀️"],
+            respuesta: 1,
+            explicacion: "¡Correcto! La madrugada (12am-6am) tiene tarifas más bajas porque hay menos demanda. Programa lavadoras y carga de vehículos en este horario para ahorrar."
+        }
+    ];
+
+    // Función para alternar el chat
+    function toggleChat() {
+        chatOpen = !chatOpen;
+        const container = document.getElementById('chatContainer');
+        const button = document.getElementById('chatButton');
+        const notification = document.getElementById('chatNotification');
+        
+        if (chatOpen) {
+            container.classList.add('active');
+            button.classList.add('active');
+            notification.style.display = 'none';
+            
+            if (!hasShownWelcome) {
+                setTimeout(inicializarChat, 300);
+                hasShownWelcome = true;
+            }
+        } else {
+            container.classList.remove('active');
+            button.classList.remove('active');
+        }
+    }
+
+    // Función para mostrar notificación cuando hay datos interesantes
+    function mostrarNotificacionChat() {
+        if (!chatOpen && !hasShownWelcome) {
+            const notification = document.getElementById('chatNotification');
+            notification.style.display = 'flex';
+        }
+    }
+
+    // Inicializar chat con mensaje de bienvenida
+    function inicializarChat() {
+        const userName = document.getElementById('userName').textContent;
+        addBotMessage(
+            `¡Hola ${userName}! 👋 Soy Junior, tu asistente inteligente de energía.\n\n` +
+            "Estoy analizando tus datos en tiempo real para darte:\n" +
+            "✅ Análisis personalizado de tu consumo\n" +
+            "✅ Consejos para ahorrar dinero\n" +
+            "✅ Datos curiosos sobre electricidad\n" +
+            "✅ Respuestas a tus dudas\n\n" +
+            "¿Qué te gustaría saber?",
+            [
+                "📊 Analizar mi consumo actual",
+                "💡 Dame un consejo",
+                "🎓 Dato curioso"
+            ]
+        );
+    }
+
+    // Agregar mensaje del bot
+    function addBotMessage(text, suggestions = []) {
+        const chatBody = document.getElementById('chatBody');
+        const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot';
+        
+        let suggestionsHTML = '';
+        if (suggestions.length > 0) {
+            suggestionsHTML = `
+                <div class="quick-suggestions">
+                    ${suggestions.map(s => `<button class="suggestion-btn" onclick="handleSuggestionChat('${s.replace(/'/g, "\\'")}')">${s}</button>`).join('')}
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div style="flex: 1;">
+                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
+                <div class="message-time">${time}</div>
+                ${suggestionsHTML}
+            </div>
+        `;
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Agregar mensaje del usuario
+    function addUserMessage(text) {
+        const chatBody = document.getElementById('chatBody');
+        const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        
+        messageDiv.innerHTML = `
+            <div class="message-avatar">👤</div>
+            <div>
+                <div class="message-content">${text}</div>
+                <div class="message-time">${time}</div>
+            </div>
+        `;
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Mostrar indicador de escritura
+    function showTypingIndicator() {
+        const chatBody = document.getElementById('chatBody');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `;
+        chatBody.appendChild(typingDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const typing = document.getElementById('typingIndicator');
+        if (typing) typing.remove();
+    }
+
+    // Enviar mensaje
+    function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (message === '') return;
+        
+        addUserMessage(message);
+        input.value = '';
+        
+        processUserMessage(message);
+    }
+
+    // Manejar Enter
+    function handleKeyPressChat(event) {
+        if (event.key === 'Enter') {
+            sendChatMessage();
+        }
+    }
+
+    // Manejar sugerencias
+    function handleSuggestionChat(suggestion) {
+        addUserMessage(suggestion);
+        processUserMessage(suggestion);
+    }
+
+    // Capturar datos del dashboard
+    function capturarDatosEnergia() {
+        try {
+            // Obtener valores de los elementos DOM
+            const potenciaText = document.getElementById('potenciaActual')?.textContent || '0';
+            const consumoText = document.getElementById('consumoHoy')?.textContent || '0';
+            const costoText = document.getElementById('costoHoy')?.textContent || '$0';
+            const picoText = document.getElementById('picoMaximo')?.textContent || '0';
+            const corriente1Text = document.getElementById('corriente1')?.textContent || '0 A';
+            const corriente2Text = document.getElementById('corriente2')?.textContent || '0 A';
+            const corriente3Text = document.getElementById('corriente3')?.textContent || '0 A';
+            const voltaje1Text = document.getElementById('voltaje1')?.textContent || '0 V';
+            const voltaje2Text = document.getElementById('voltaje2')?.textContent || '0 V';
+            
+            ultimosDatosEnergia = {
+                potenciaActual: parseFloat(potenciaText.replace(/[^0-9.]/g, '')) || 0,
+                consumoHoy: parseFloat(consumoText.replace(/[^0-9.]/g, '')) || 0,
+                costoHoy: parseFloat(costoText.replace(/[^0-9.]/g, '')) || 0,
+                picoMaximo: parseFloat(picoText.replace(/[^0-9.]/g, '')) || 0,
+                corriente1: parseFloat(corriente1Text.replace(/[^0-9.]/g, '')) || 0,
+                corriente2: parseFloat(corriente2Text.replace(/[^0-9.]/g, '')) || 0,
+                corriente3: parseFloat(corriente3Text.replace(/[^0-9.]/g, '')) || 0,
+                voltaje1: parseFloat(voltaje1Text.replace(/[^0-9.]/g, '')) || 0,
+                voltaje2: parseFloat(voltaje2Text.replace(/[^0-9.]/g, '')) || 0,
+                estadoPotencia: document.getElementById('estadoPotencia')?.textContent || 'Normal',
+                datosHistoricos: typeof datosHistoricos !== 'undefined' ? datosHistoricos.length : 0,
+                timestamp: Date.now()
+            };
+            
+            console.log('📊 Datos capturados por el chatbot:', ultimosDatosEnergia);
+            return ultimosDatosEnergia;
+        } catch (error) {
+            console.error('❌ Error capturando datos:', error);
+            return null;
+        }
+    }
+
+    // Procesar mensaje del usuario
+    function processUserMessage(message) {
+        showTypingIndicator();
+        
+        setTimeout(() => {
+            removeTypingIndicator();
+            
+            const msgLower = message.toLowerCase();
+            
+            // Capturar datos actuales
+            const datos = capturarDatosEnergia();
+            
+            // Analizar consumo
+            if (msgLower.includes('analizar') || msgLower.includes('consumo') || msgLower.includes('📊') || msgLower.includes('actual')) {
+                analizarConsumoReal(datos);
+            }
+            // Dar consejo
+            else if (msgLower.includes('consejo') || msgLower.includes('recomendar') || msgLower.includes('💡') || msgLower.includes('ahorro')) {
+                darConsejoPersonalizado(datos);
+            }
+            // Pregunta curiosa / dato curioso
+            else if (msgLower.includes('curiosa') || msgLower.includes('curioso') || msgLower.includes('🎓') || msgLower.includes('dato') || msgLower.includes('aprend')) {
+                darDatoCurioso();
+            }
+            // Explicar datos
+            else if (msgLower.includes('explicar') || msgLower.includes('datos') || msgLower.includes('⚡') || msgLower.includes('significa')) {
+                explicarDatosEnergia(datos);
+            }
+            // Quiz
+            else if (msgLower.includes('quiz') || msgLower.includes('pregunta') || msgLower.includes('test') || msgLower.includes('juego')) {
+                hacerPreguntaQuiz();
+            }
+            // Voltaje
+            else if (msgLower.includes('voltaje') || msgLower.includes('volt')) {
+                explicarVoltaje(datos);
+            }
+            // Corriente
+            else if (msgLower.includes('corriente') || msgLower.includes('ampere') || msgLower.includes('amper')) {
+                explicarCorriente(datos);
+            }
+            // Factura / costo
+            else if (msgLower.includes('factura') || msgLower.includes('costo') || msgLower.includes('pagar') || msgLower.includes('precio')) {
+                calcularFactura(datos);
+            }
+            // Respuesta general
+            else {
+                respuestaGeneral(message, datos);
+            }
+        }, 1500);
+    }
+
+    // FUNCIONES DE RESPUESTA
+
+    function analizarConsumoReal(datos) {
+        if (!datos) {
+            addBotMessage("⚠️ No puedo acceder a los datos en este momento. Intenta de nuevo.", [
+                "🔄 Reintentar",
+                "💡 Dame un consejo general"
+            ]);
+            return;
+        }
+
+        const potencia = datos.potenciaActual;
+        const estado = datos.estadoPotencia;
+        
+        let analisis = `<span class="badge-analysis">📊 ANÁLISIS EN TIEMPO REAL</span><br><br>`;
+        
+        analisis += `<b>Estado actual:</b> ${estado}<br>`;
+        analisis += `<b>Potencia:</b> ${potencia.toFixed(0)}W<br>`;
+        analisis += `<b>Consumo hoy:</b> ${datos.consumoHoy} kWh<br>`;
+        analisis += `<b>Costo estimado:</b> $${datos.costoHoy.toFixed(0)}<br><br>`;
+        
+        if (potencia < 1000) {
+            analisis += `✅ <b>Excelente!</b> Tu consumo está muy bajo (${potencia.toFixed(0)}W).<br><br>`;
+            analisis += `Esto equivale a tener encendido:<br>`;
+            analisis += `• ${Math.floor(potencia / 10)} bombillos LED de 10W<br>`;
+            analisis += `• O un TV + computador<br><br>`;
+            analisis += `💰 A este ritmo, tu factura mensual sería de ~$${(datos.consumoHoy * 30 * 500).toFixed(0)}`;
+        } else if (potencia < 2000) {
+            analisis += `👍 <b>Normal.</b> Consumo moderado de ${potencia.toFixed(0)}W.<br><br>`;
+            analisis += `Posibles equipos encendidos:<br>`;
+            analisis += `• Refrigerador (~150W)<br>`;
+            analisis += `• TV + equipos (~200W)<br>`;
+            analisis += `• Luces (~100W)<br>`;
+            analisis += `• Otros dispositivos<br><br>`;
+            analisis += `💡 <b>Tip:</b> Desconecta cargadores que no uses.`;
+        } else if (potencia < 3000) {
+            analisis += `⚠️ <b>Consumo elevado:</b> ${potencia.toFixed(0)}W<br><br>`;
+            analisis += `Probablemente tienes encendido:<br>`;
+            analisis += `• Aires acondicionados 🌡️<br>`;
+            analisis += `• Plancha o secador 👕<br>`;
+            analisis += `• Horno o estufa 🍳<br><br>`;
+            analisis += `💰 Este nivel de consumo cuesta ~$${(potencia * 24 * 30 / 1000 * 500).toFixed(0)}/mes`;
+        } else {
+            analisis += `🚨 <b>¡ALERTA! Consumo crítico:</b> ${potencia.toFixed(0)}W<br><br>`;
+            analisis += `<b>Recomendaciones urgentes:</b><br>`;
+            analisis += `1. Apaga aires acondicionados<br>`;
+            analisis += `2. Desconecta calentadores<br>`;
+            analisis += `3. Revisa si hay equipos defectuosos<br><br>`;
+            analisis += `⚠️ A este ritmo pagarías $${(potencia * 24 * 30 / 1000 * 500).toFixed(0)}/mes`;
+        }
+
+        addBotMessage(analisis, [
+            "💡 ¿Cómo bajo mi consumo?",
+            "💰 Ver desglose de costos",
+            "📈 Ver tendencias"
+        ]);
+    }
+
+    function darConsejoPersonalizado(datos) {
+        if (!datos) {
+            darConsejoGenerico();
+            return;
+        }
+
+        const potencia = datos.potenciaActual;
+        const voltaje = (datos.voltaje1 + datos.voltaje2) / 2;
+        const corriente = datos.corriente1 + datos.corriente2 + datos.corriente3;
+        const hora = new Date().getHours();
+
+        let consejo = `<span class="badge-tip">💡 CONSEJO PERSONALIZADO</span><br><br>`;
+
+        // Consejos según la hora
+        if (hora >= 18 && hora <= 22 && potencia > 2000) {
+            consejo += `🕐 <b>Horario Pico (6pm-10pm)</b><br><br>`;
+            consejo += `Estás consumiendo ${potencia.toFixed(0)}W en horario caro.<br><br>`;
+            consejo += `<b>Acciones inmediatas:</b><br>`;
+            consejo += `• Pospón lavadora/secadora para después de las 10pm<br>`;
+            consejo += `• Si planchas, hazlo mañana temprano<br>`;
+            consejo += `• Reduce AC a 24°C o usa ventilador<br><br>`;
+            consejo += `💰 <b>Ahorro potencial:</b> $15,000-25,000/mes`;
+        }
+        // Consumo vampiro en madrugada
+        else if (hora >= 0 && hora <= 6 && potencia > 200) {
+            consejo += `🧛 <b>Consumo Vampiro Detectado</b><br><br>`;
+            consejo += `Tienes ${potencia.toFixed(0)}W de consumo en madrugada.<br><br>`;
+            consejo += `<b>Culpables comunes:</b><br>`;
+            consejo += `• Cargadores enchufados sin usar (5-10W c/u)<br>`;
+            consejo += `• TV/consolas en standby (10-15W)<br>`;
+            consejo += `• Microondas con reloj (3-5W)<br>`;
+            consejo += `• Routers/modems (8-12W)<br><br>`;
+            consejo += `💰 <b>Ahorro anual:</b> ~$50,000-100,000`;
+        }
+        // Voltaje anormal
+        else if (voltaje < 105 || voltaje > 125) {
+            consejo += `⚡ <b>Alerta de Voltaje</b><br><br>`;
+            consejo += `Tu voltaje está en ${voltaje.toFixed(1)}V (normal: 110-120V).<br><br>`;
+            consejo += `<b>Riesgos:</b><br>`;
+            consejo += `• Daño a electrodomésticos sensibles<br>`;
+            consejo += `• Mayor consumo de energía<br>`;
+            consejo += `• Sobrecalentamiento de equipos<br><br>`;
+            consejo += `<b>Recomendación:</b> Contacta a tu proveedor eléctrico o instala un regulador de voltaje.`;
+        }
+        // Desequilibrio de corriente
+        else if (Math.max(datos.corriente1, datos.corriente2, datos.corriente3) > Math.min(datos.corriente1, datos.corriente2, datos.corriente3) * 1.5) {
+            consejo += `⚖️ <b>Desequilibrio de Cargas</b><br><br>`;
+            consejo += `Tus fases están desbalanceadas:<br>`;
+            consejo += `L1: ${datos.corriente1.toFixed(2)}A<br>`;
+            consejo += `L2: ${datos.corriente2.toFixed(2)}A<br>`;
+            consejo += `L3: ${datos.corriente3.toFixed(2)}A<br><br>`;
+            consejo += `<b>Solución:</b> Redistribuye electrodomésticos entre los circuitos para equilibrar la carga.<br><br>`;
+            consejo += `💰 <b>Ahorro potencial:</b> 5-10% en factura`;
+        }
+        // Consejo general según potencia
+        else if (potencia > 2500) {
+            consejo += `📉 <b>Reducir Consumo Alto</b><br><br>`;
+            consejo += `Con ${potencia.toFixed(0)}W, estás en la zona cara.<br><br>`;
+            consejo += `<b>Plan de acción:</b><br>`;
+            consejo += `1. Apaga AC y abre ventanas si es posible<br>`;
+            consejo += `2. Desconecta segundo refrigerador si tienes<br>`;
+            consejo += `3. Usa horno microondas en vez de horno eléctrico<br>`;
+            consejo += `4. Apaga luces de habitaciones vacías<br><br>`;
+            consejo += `🎯 <b>Meta:</b> Bajar a menos de 2000W`;
+        } else {
+            consejo += `✨ <b>Optimización Continua</b><br><br>`;
+            consejo += `Tu consumo está bien (${potencia.toFixed(0)}W), pero siempre hay espacio para mejorar:<br><br>`;
+            consejo += `<b>Mejoras a largo plazo:</b><br>`;
+            consejo += `• Cambia todas las bombillas a LED (-80% consumo)<br>`;
+            consejo += `• Considera paneles solares para agua caliente<br>`;
+            consejo += `• Revisa el aislamiento de puertas/ventanas<br>`;
+            consejo += `• Programa lavadora/secadora en madrugada<br><br>`;
+            consejo += `💚 <b>Impacto:</b> Hasta 30% de ahorro anual`;
+        }
+
+        addBotMessage(consejo, [
+            "📊 Ver mi análisis completo",
+            "🎓 Dato curioso",
+            "🎯 Más consejos"
+        ]);
+    }
+
+    function darConsejoGenerico() {
+        const consejos = [
+            {
+                titulo: "💡 Iluminación LED",
+                texto: "Cambia todas tus bombillas a LED. Una LED de 10W ilumina igual que una incandescente de 60W.",
+                ahorro: "Ahorro: 80% en iluminación (~$30,000/año)"
+            },
+            {
+                titulo: "❄️ Refrigerador Eficiente",
+                texto: "Mantén tu refrigerador a 4°C y limpia las bobinas traseras cada 6 meses. No lo sobrecargues.",
+                ahorro: "Ahorro: 15-20% (~$50,000/año)"
+            },
+            {
+                titulo: "🌡️ Aire Acondicionado",
+                texto: "Ponlo a 24°C. Cada grado menos aumenta 8% el consumo. Limpia filtros mensualmente.",
+                ahorro: "Ahorro: 25-30% (~$100,000/año)"
+            },
+            {
+                titulo: "⏰ Horarios Inteligentes",
+                texto: "Usa lavadora, secadora y plancha después de las 10pm cuando baja la tarifa eléctrica.",
+                ahorro: "Ahorro: 20-30% en estos equipos"
+            },
+            {
+                titulo: "🔌 Elimina Vampiros",
+                texto: "Desconecta cargadores, TV y consolas cuando no uses. Usan 5-15W en standby.",
+                ahorro: "Ahorro: $50,000-100,000/año"
+            }
+        ];
+
+        const consejo = consejos[Math.floor(Math.random() * consejos.length)];
+        
+        const mensaje = `<span class="badge-tip">💡 CONSEJO</span><br><br>` +
+            `<b>${consejo.titulo}</b><br><br>` +
+            `${consejo.texto}<br><br>` +
+            `💰 <b>${consejo.ahorro}</b>`;
+
+        addBotMessage(mensaje, [
+            "📊 Analizar mi consumo",
+            "💡 Otro consejo",
+            "🎓 Dato curioso"
+        ]);
+    }
+
+    function darDatoCurioso() {
+        const dato = datosCuriosos[Math.floor(Math.random() * datosCuriosos.length)];
+        
+        addBotMessage(
+            `<span class="badge-quiz">🎓 DATO CURIOSO</span><br><br>${dato}<br><br>¿Quieres aprender más?`,
+            [
+                "🎯 Hazme un quiz",
+                "🔍 Otro dato",
+                "📊 Ver mi consumo"
+            ]
+        );
+        
+        // Mostrar notificación después de unos minutos si el chat está cerrado
+        if (!chatOpen) {
+            setTimeout(() => {
+                if (!chatOpen) mostrarNotificacionChat();
+            }, 180000); // 3 minutos
+        }
+    }
+
+    function explicarDatosEnergia(datos) {
+        if (!datos) {
+            explicarConceptosBasicos();
+            return;
+        }
+
+        const explicacion = `<span class="badge-analysis">⚡ TUS DATOS EXPLICADOS</span><br><br>` +
+            `<b>📊 Potencia Actual: ${datos.potenciaActual.toFixed(0)}W</b><br>` +
+            `Es la energía que estás usando AHORA MISMO. Es como la velocidad de tu auto en este momento.<br><br>` +
+            
+            `<b>🔋 Consumo del Día: ${datos.consumoHoy} kWh</b><br>` +
+            `Es la energía total que has usado hoy. Es como los kilómetros recorridos. Esto es lo que te cobran.<br><br>` +
+            
+            `<b>⚡ Voltaje: ${datos.voltaje1.toFixed(1)}V / ${datos.voltaje2.toFixed(1)}V</b><br>` +
+            `Es la "presión" eléctrica. En Colombia debe estar entre 110-120V. Si está fuera, llama a tu proveedor.<br><br>` +
+            
+            `<b>🔌 Corriente: ${datos.corriente1.toFixed(2)}A + ${datos.corriente2.toFixed(2)}A + ${datos.corriente3.toFixed(2)}A</b><br>` +
+            `Es el "flujo" de electricidad. Más amperios = más equipos funcionando.<br><br>` +
+            
+            `<b>💰 Cálculo Simple:</b><br>` +
+            `Tu factura = kWh × Tarifa<br>` +
+            `Hoy: ${datos.consumoHoy} kWh × $500 = ${datos.costoHoy.toFixed(0)}<br>` +
+            `Proyección mensual: ~${(datos.costoHoy * 30).toFixed(0)}`;
+
+        addBotMessage(explicacion, [
+            "🧮 Calcular factura",
+            "📊 Analizar consumo",
+            "💡 Dame un consejo"
+        ]);
+    }
+
+    function explicarConceptosBasicos() {
+        const explicacion = `<span class="badge-analysis">⚡ CONCEPTOS ELÉCTRICOS</span><br><br>` +
+            `<b>Voltaje (V):</b> La "presión" eléctrica. Como la presión del agua en una manguera. Colombia usa 110-120V.<br><br>` +
+            `<b>Corriente (A):</b> El "flujo" de electricidad. Cuántos electrones pasan por segundo.<br><br>` +
+            `<b>Potencia (W):</b> V × A = W. Es la energía que usas en este instante.<br><br>` +
+            `<b>kWh:</b> Energía total consumida. 1 kWh = usar 1000W durante 1 hora.<br><br>` +
+            `<b>Ejemplo práctico:</b><br>` +
+            `Un bombillo LED de 10W encendido 5h/día:<br>` +
+            `10W × 5h = 50Wh/día = 1.5kWh/mes = $750`;
+
+        addBotMessage(explicacion, [
+            "📊 Ver mis datos",
+            "💡 Consejo práctico",
+            "🎓 Quiz"
+        ]);
+    }
+
+    function explicarVoltaje(datos) {
+        const voltaje = datos ? (datos.voltaje1 + datos.voltaje2) / 2 : 115;
+        
+        let mensaje = `<span class="badge-analysis">⚡ VOLTAJE</span><br><br>`;
+        
+        if (datos) {
+            mensaje += `<b>Tu voltaje actual:</b><br>`;
+            mensaje += `L1-N: ${datos.voltaje1.toFixed(1)}V<br>`;
+            mensaje += `L2-N: ${datos.voltaje2.toFixed(1)}V<br>`;
+            mensaje += `Promedio: ${voltaje.toFixed(1)}V<br><br>`;
+        }
+        
+        mensaje += `<b>¿Qué es el voltaje?</b><br>`;
+        mensaje += `Es la "presión" eléctrica, como la presión del agua en una tubería.<br><br>`;
+        
+        if (voltaje >= 110 && voltaje <= 120) {
+            mensaje += `✅ Tu voltaje está PERFECTO.<br><br>`;
+        } else if (voltaje < 110) {
+            mensaje += `⚠️ Voltaje BAJO. Puede causar:<br>`;
+            mensaje += `• Luces tenues<br>`;
+            mensaje += `• Motores sobrecalentados<br>`;
+            mensaje += `• Mayor consumo de energía<br><br>`;
+        } else {
+            mensaje += `⚠️ Voltaje ALTO. Puede causar:<br>`;
+            mensaje += `• Daño a electrodomésticos<br>`;
+            mensaje += `• Bombillas quemadas<br>`;
+            mensaje += `• Riesgo de incendio<br><br>`;
+        }
+        
+        mensaje += `<b>Rangos en Colombia:</b><br>`;
+        mensaje += `• Normal: 110-120V<br>`;
+        mensaje += `• Aceptable: 105-125V<br>`;
+        mensaje += `• Peligroso: <100V o >130V`;
+
+        addBotMessage(mensaje, [
+            "📊 Ver análisis completo",
+            "🔌 Explicar corriente",
+            "💡 Consejo"
+        ]);
+    }
+
+    function explicarCorriente(datos) {
+        const corriente = datos ? (datos.corriente1 + datos.corriente2 + datos.corriente3) : 0;
+        
+        let mensaje = `<span class="badge-analysis">🔌 CORRIENTE ELÉCTRICA</span><br><br>`;
+        
+        if (datos) {
+            mensaje += `<b>Tu corriente actual:</b><br>`;
+            mensaje += `Fase 1: ${datos.corriente1.toFixed(2)}A<br>`;
+            mensaje += `Fase 2: ${datos.corriente2.toFixed(2)}A<br>`;
+            mensaje += `Fase 3: ${datos.corriente3.toFixed(2)}A<br>`;
+            mensaje += `Total: ${corriente.toFixed(2)}A<br><br>`;
+        }
+        
+        mensaje += `<b>¿Qué es la corriente?</b><br>`;
+        mensaje += `Es el "flujo" de electricidad, como el agua fluyendo por una tubería.<br><br>`;
+        
+        mensaje += `<b>Referencias prácticas:</b><br>`;
+        mensaje += `• Bombillo LED: 0.1A<br>`;
+        mensaje += `• TV: 0.5-1A<br>`;
+        mensaje += `• Refrigerador: 1-2A<br>`;
+        mensaje += `• Aire acondicionado: 5-10A<br>`;
+        mensaje += `• Plancha: 8-10A<br><br>`;
+        
+        if (datos && corriente > 15) {
+            mensaje += `⚠️ Tu corriente es alta. Tienes varios equipos potentes encendidos.`;
+        }
+
+        addBotMessage(mensaje, [
+            "⚡ Explicar voltaje",
+            "💡 ¿Cómo reducir consumo?",
+            "📊 Analizar"
+        ]);
+    }
+
+    function calcularFactura(datos) {
+        if (!datos) {
+            addBotMessage(
+                "Para calcular tu factura necesito tus datos actuales. ¿Quieres que analice tu consumo?",
+                ["📊 Sí, analizar", "💡 Dame un consejo"]
+            );
+            return;
+        }
+
+        const consumoDiario = datos.consumoHoy;
+        const consumoMensual = consumoDiario * 30;
+        const costoMensual = consumoMensual * 500;
+        
+        let mensaje = `<span class="badge-tip">💰 PROYECCIÓN DE FACTURA</span><br><br>`;
+        
+        mensaje += `<b>Consumo de hoy:</b> ${consumoDiario} kWh<br>`;
+        mensaje += `<b>Costo de hoy:</b> ${datos.costoHoy.toFixed(0)}<br><br>`;
+        
+        mensaje += `<b>📅 Proyección mensual:</b><br>`;
+        mensaje += `Consumo: ${consumoMensual.toFixed(1)} kWh<br>`;
+        mensaje += `Costo: ${costoMensual.toFixed(0)}<br><br>`;
+        
+        mensaje += `<b>Desglose estimado:</b><br>`;
+        mensaje += `• Refrigerador: 25% = ${(costoMensual * 0.25).toFixed(0)}<br>`;
+        mensaje += `• Aires/Calentadores: 35% = ${(costoMensual * 0.35).toFixed(0)}<br>`;
+        mensaje += `• Iluminación: 15% = ${(costoMensual * 0.15).toFixed(0)}<br>`;
+        mensaje += `• Electrodomésticos: 15% = ${(costoMensual * 0.15).toFixed(0)}<br>`;
+        mensaje += `• Standby: 10% = ${(costoMensual * 0.10).toFixed(0)}<br><br>`;
+        
+        if (consumoMensual > 300) {
+            mensaje += `⚠️ Consumo alto. Con mejoras podrías ahorrar 20-30% (${(costoMensual * 0.25).toFixed(0)}/mes).`;
+        } else if (consumoMensual > 200) {
+            mensaje += `👍 Consumo promedio. Con optimizaciones podrías ahorrar 10-15%.`;
+        } else {
+            mensaje += `✅ ¡Excelente! Tu consumo es bajo. Mantén estos hábitos.`;
+        }
+
+        addBotMessage(mensaje, [
+            "💡 ¿Cómo reducir factura?",
+            "📊 Ver análisis",
+            "🎓 Aprender más"
+        ]);
+    }
+
+    function hacerPreguntaQuiz() {
+        const pregunta = preguntasEducativas[Math.floor(Math.random() * preguntasEducativas.length)];
+        
+        const mensaje = `<span class="badge-quiz">🎯 QUIZ ENERGÉTICO</span><br><br><b>${pregunta.pregunta}</b>`;
+        
+        addBotMessage(mensaje, pregunta.opciones);
+        
+        conversationContext.push({
+            type: 'quiz',
+            pregunta: pregunta
+        });
+    }
+
+    function validarRespuestaQuiz(respuesta, pregunta) {
+        conversationContext.pop(); // Limpiar contexto
+        
+        const respuestaIdx = pregunta.opciones.findIndex(op => 
+            respuesta.toLowerCase().includes(op.toLowerCase().substring(0, 3))
+        );
+        
+        if (respuestaIdx === pregunta.respuesta) {
+            addBotMessage(
+                `🎉 <b>¡CORRECTO!</b><br><br>${pregunta.explicacion}`,
+                [
+                    "🎯 Otra pregunta",
+                    "📊 Ver mi consumo",
+                    "🎓 Dato curioso"
+                ]
+            );
+        } else {
+            addBotMessage(
+                `❌ <b>No es correcto.</b><br><br>La respuesta correcta es: <b>${pregunta.opciones[pregunta.respuesta]}</b><br><br>${pregunta.explicacion}`,
+                [
+                    "🎯 Reintentar",
+                    "💡 Dame un consejo",
+                    "📊 Analizar consumo"
+                ]
+            );
+        }
+    }
+
+    function respuestaGeneral(message, datos) {
+        const msgLower = message.toLowerCase();
+        
+        // Verificar si es respuesta de quiz
+        if (conversationContext.length > 0) {
+            const ultimo = conversationContext[conversationContext.length - 1];
+            if (ultimo.type === 'quiz') {
+                validarRespuestaQuiz(message, ultimo.pregunta);
+                return;
+            }
+        }
+        
+        // Saludos
+        if (msgLower.includes('hola') || msgLower.includes('buenas') || msgLower.includes('hey')) {
+            addBotMessage(
+                "¡Hola! 👋 ¿En qué puedo ayudarte con tu energía?",
+                ["📊 Analizar consumo", "💡 Dame un consejo", "🎓 Dato curioso"]
+            );
+        }
+        // Agradecimientos
+        else if (msgLower.includes('gracias') || msgLower.includes('thanks')) {
+            addBotMessage(
+                "¡De nada! 🙌 Estoy aquí para ayudarte a ahorrar energía y dinero. ¿Algo más?",
+                ["📊 Ver consumo", "💡 Más consejos", "🎯 Quiz"]
+            );
+        }
+        // Despedidas
+        else if (msgLower.includes('adiós') || msgLower.includes('chao') || msgLower.includes('bye')) {
+            addBotMessage(
+                "¡Hasta pronto! ⚡ Recuerda: pequeños cambios hacen grandes ahorros. 💚",
+                []
+            );
+        }
+        // Ayuda
+        else if (msgLower.includes('ayuda') || msgLower.includes('help')) {
+            addBotMessage(
+                "📋 <b>Puedo ayudarte con:</b><br><br>" +
+                "✅ Analizar tu consumo en tiempo real<br>" +
+                "✅ Darte consejos personalizados<br>" +
+                "✅ Explicar tus datos eléctricos<br>" +
+                "✅ Calcular tu factura<br>" +
+                "✅ Datos curiosos y quiz educativos<br><br>" +
+                "¿Qué te gustaría hacer?",
+                [
+                    "📊 Analizar consumo",
+                    "💡 Consejo",
+                    "⚡ Explicar datos",
+                    "🎓 Aprender"
+                ]
+            );
+        }
+        // Pregunta sobre ahorro
+        else if (msgLower.includes('ahorr') || msgLower.includes('reducir') || msgLower.includes('bajar')) {
+            darConsejoPersonalizado(datos);
+        }
+        // Pregunta técnica genérica
+        else {
+            addBotMessage(
+                "Interesante pregunta. 🤔 Para darte la mejor respuesta, ¿qué te gustaría saber específicamente?",
+                [
+                    "📊 Mi consumo actual",
+                    "💡 Consejos de ahorro",
+                    "⚡ Conceptos eléctricos",
+                    "💰 Calcular factura"
+                ]
+            );
+        }
+    }
+
+    // Notificación proactiva cuando hay consumo alto
+    function verificarConsumoAlto() {
+        const datos = capturarDatosEnergia();
+        if (datos && datos.potenciaActual > 3000 && !chatOpen) {
+            mostrarNotificacionChat();
+        }
+    }
+
+    // Verificar cada 2 minutos si hay consumo alto
+    setInterval(verificarConsumoAlto, 120000);
+
+    // Mostrar dato curioso cada 10 minutos si el chat está cerrado
+    setInterval(() => {
+        if (!chatOpen && hasShownWelcome) {
+            mostrarNotificacionChat();
+        }
+    }, 600000);
+</script>
+</body>
+</html>
